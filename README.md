@@ -2,10 +2,10 @@
 
 A PyTorch implementation of AttGAN - [Arbitrary Facial Attribute Editing: Only Change What You Want](https://arxiv.org/abs/1711.10678)
 
-![Teaser](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/teaser.jpg)
+![Teaser](pics/teaser.jpg)
 Test on the CelebA validating set
 
-![Custom](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/custom_images.jpg)
+![Custom](pics/custom_images.jpg)
 Test on my custom set
 
 Inverting 13 attributes respectively. From left to right: _Input, Reconstruction, Bald, Bangs, Black_Hair, Blond_Hair, Brown_Hair, Bushy_Eyebrows, Eyeglasses, Male, Mouth_Slightly_Open, Mustache, No_Beard, Pale_Skin, Young_
@@ -89,7 +89,7 @@ tensorboard \
 
 #### To test with single attribute editing
 
-![Test](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing.jpg)
+![Test](pics/sample_testing.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -101,7 +101,7 @@ python test.py \
 
 #### To test with multiple attributes editing
 
-![Test Multi](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing_multi.jpg)
+![Test Multi](pics/sample_testing_multi.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
@@ -114,7 +114,7 @@ python test_multi.py \
 
 #### To test with attribute intensity control
 
-![Test Slide](https://github.com/elvisyjlin/AttGAN-PyTorch/blob/master/pics/sample_testing_slide.jpg)
+![Test Slide](pics/sample_testing_slide.jpg)
 
 ```bash
 CUDA_VISIBLE_DEVICES=0 \
