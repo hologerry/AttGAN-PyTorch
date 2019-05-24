@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
-# 
+#
 # This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
@@ -24,6 +24,7 @@ def add_normalization_1d(layers, fn, n_out):
         raise Exception('Unsupported normalization: ' + str(fn))
     return layers
 
+
 def add_normalization_2d(layers, fn, n_out):
     if fn == 'none':
         pass
@@ -36,6 +37,7 @@ def add_normalization_2d(layers, fn, n_out):
     else:
         raise Exception('Unsupported normalization: ' + str(fn))
     return layers
+
 
 def add_activation(layers, fn):
     if fn == 'none':
@@ -52,19 +54,21 @@ def add_activation(layers, fn):
         raise Exception('Unsupported activation function: ' + str(fn))
     return layers
 
+
 class Squeeze(nn.Module):
     def __init__(self, dim):
         super(Squeeze, self).__init__()
         self.dim = dim
-    
+
     def forward(self, x):
         return x.squeeze(self.dim)
+
 
 class Unsqueeze(nn.Module):
     def __init__(self, dim):
         super(Unsqueeze, self).__init__()
         self.dim = dim
-    
+
     def forward(self, x):
         return x.unsqueeze(self.dim)
 
@@ -72,34 +76,38 @@ class Unsqueeze(nn.Module):
 class LinearBlock(nn.Module):
     def __init__(self, n_in, n_out, norm_fn='none', acti_fn='none'):
         super(LinearBlock, self).__init__()
-        layers = [nn.Linear(n_in, n_out, bias=(norm_fn=='none'))]
+        layers = [nn.Linear(n_in, n_out, bias=(norm_fn == 'none'))]
         layers = add_normalization_1d(layers, norm_fn, n_out)
         layers = add_activation(layers, acti_fn)
         self.layers = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.layers(x)
+
 
 class Conv2dBlock(nn.Module):
-    def __init__(self, n_in, n_out, kernel_size, stride=1, padding=0, 
+    def __init__(self, n_in, n_out, kernel_size, stride=1, padding=0,
                  norm_fn=None, acti_fn=None):
         super(Conv2dBlock, self).__init__()
-        layers = [nn.Conv2d(n_in, n_out, kernel_size, stride=stride, padding=padding, bias=(norm_fn=='none'))]
+        layers = [nn.Conv2d(n_in, n_out, kernel_size, stride=stride, padding=padding,
+                  bias=(norm_fn == 'none'))]
         layers = add_normalization_2d(layers, norm_fn, n_out)
         layers = add_activation(layers, acti_fn)
         self.layers = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.layers(x)
 
+
 class ConvTranspose2dBlock(nn.Module):
-    def __init__(self, n_in, n_out, kernel_size, stride=1, padding=0, 
+    def __init__(self, n_in, n_out, kernel_size, stride=1, padding=0,
                  norm_fn=False, acti_fn=None):
         super(ConvTranspose2dBlock, self).__init__()
-        layers = [nn.ConvTranspose2d(n_in, n_out, kernel_size, stride=stride, padding=padding, bias=(norm_fn=='none'))]
+        layers = [nn.ConvTranspose2d(n_in, n_out, kernel_size, stride=stride, padding=padding,
+                  bias=(norm_fn == 'none'))]
         layers = add_normalization_2d(layers, norm_fn, n_out)
         layers = add_activation(layers, acti_fn)
         self.layers = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.layers(x)

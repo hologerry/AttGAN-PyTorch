@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
-# 
+#
 # This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
@@ -32,6 +32,7 @@ def parse(args=None):
     parser.add_argument('--gpu', action='store_true')
     return parser.parse_args(args)
 
+
 args_ = parse()
 print(args_)
 
@@ -62,7 +63,8 @@ else:
         test_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'test', args.attrs)
     if args.data == 'CelebA-HQ':
         from data import CelebA_HQ
-        test_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'test', args.attrs)
+        test_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size,
+                                 'test', args.attrs)
 os.makedirs(output_path, exist_ok=True)
 test_dataloader = data.DataLoader(
     test_dataset, batch_size=1, num_workers=args.num_workers,
@@ -82,11 +84,11 @@ attgan.eval()
 for idx, (img_a, att_a) in enumerate(test_dataloader):
     if args.num_test is not None and idx == args.num_test:
         break
-    
+
     img_a = img_a.cuda() if args.gpu else img_a
     att_a = att_a.cuda() if args.gpu else att_a
     att_a = att_a.type(torch.float)
-    
+
     att_b_list = [att_a]
     for i in range(args.n_attrs):
         tmp = att_a.clone()

@@ -1,5 +1,5 @@
 # Copyright (C) 2018 Elvis Yu-Jing Lin <elvisyjlin@gmail.com>
-# 
+#
 # This work is licensed under the MIT License. To view a copy of this license,
 # visit https://opensource.org/licenses/MIT.
 
@@ -26,15 +26,16 @@ attrs_default = [
     'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
 ]
 
+
 def parse(args=None):
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument('--attrs', dest='attrs', default=attrs_default, nargs='+', help='attributes to learn')
     parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ'], default='CelebA')
     parser.add_argument('--data_path', dest='data_path', type=str, default='data/img_align_celeba')
     parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_celeba.txt')
     parser.add_argument('--image_list_path', dest='image_list_path', type=str, default='data/image_list.txt')
-    
+
     parser.add_argument('--img_size', dest='img_size', type=int, default=128)
     parser.add_argument('--shortcut_layers', dest='shortcut_layers', type=int, default=1)
     parser.add_argument('--inject_layers', dest='inject_layers', type=int, default=0)
@@ -57,7 +58,7 @@ def parse(args=None):
     parser.add_argument('--lambda_2', dest='lambda_2', type=float, default=10.0)
     parser.add_argument('--lambda_3', dest='lambda_3', type=float, default=1.0)
     parser.add_argument('--lambda_gp', dest='lambda_gp', type=float, default=10.0)
-    
+
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
     parser.add_argument('--epochs', dest='epochs', type=int, default=200, help='# of epochs')
     parser.add_argument('--batch_size', dest='batch_size', type=int, default=32)
@@ -66,19 +67,22 @@ def parse(args=None):
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)
     parser.add_argument('--beta2', dest='beta2', type=float, default=0.999)
     parser.add_argument('--n_d', dest='n_d', type=int, default=5, help='# of d updates per g update')
-    
-    parser.add_argument('--b_distribution', dest='b_distribution', default='none', choices=['none', 'uniform', 'truncated_normal'])
+
+    parser.add_argument('--b_distribution', dest='b_distribution', default='none',
+                        choices=['none', 'uniform', 'truncated_normal'])
     parser.add_argument('--thres_int', dest='thres_int', type=float, default=0.5)
     parser.add_argument('--test_int', dest='test_int', type=float, default=1.0)
     parser.add_argument('--n_samples', dest='n_samples', type=int, default=16, help='# of sample images')
-    
+
     parser.add_argument('--save_interval', dest='save_interval', type=int, default=1000)
     parser.add_argument('--sample_interval', dest='sample_interval', type=int, default=1000)
     parser.add_argument('--gpu', dest='gpu', action='store_true')
     parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
-    parser.add_argument('--experiment_name', dest='experiment_name', default=datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
-    
+    parser.add_argument('--experiment_name', dest='experiment_name',
+                        default=datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
+
     return parser.parse_args(args)
+
 
 args = parse()
 print(args)
@@ -136,15 +140,15 @@ for epoch in range(args.epochs):
     writer.add_scalar('LR/learning_rate', lr, it+1)
     for img_a, att_a in progressbar(train_dataloader):
         attgan.train()
-        
+
         img_a = img_a.cuda() if args.gpu else img_a
         att_a = att_a.cuda() if args.gpu else att_a
         idx = torch.randperm(len(att_a))
         att_b = att_a[idx].contiguous()
-        
+
         att_a = att_a.type(torch.float)
         att_b = att_b.type(torch.float)
-        
+
         att_a_ = (att_a * 2 - 1) * args.thres_int
         if args.b_distribution == 'none':
             att_b_ = (att_b * 2 - 1) * args.thres_int
@@ -156,7 +160,7 @@ for epoch in range(args.epochs):
             att_b_ = (att_b * 2 - 1) * \
                      (torch.fmod(torch.randn_like(att_b), 2) + 2) / 4.0 * \
                      (2 * args.thres_int)
-        
+
         if (it+1) % (args.n_d+1) != 0:
             errD = attgan.trainD(img_a, att_a, att_a_, att_b, att_b_)
             add_scalar_dict(writer, errD, it+1, 'D')
@@ -164,7 +168,7 @@ for epoch in range(args.epochs):
             errG = attgan.trainG(img_a, att_a, att_a_, att_b, att_b_)
             add_scalar_dict(writer, errG, it+1, 'G')
             progressbar.say(epoch=epoch, iter=it+1, d_loss=errD['d_loss'], g_loss=errG['g_loss'])
-        
+
         if (it+1) % args.save_interval == 0:
             # To save storage space, I only checkpoint the weights of G.
             # If you'd like to keep weights of G, D, optim_G, optim_D,
@@ -188,6 +192,6 @@ for epoch in range(args.epochs):
                 writer.add_image('sample', vutils.make_grid(samples, nrow=1, normalize=True, range=(-1., 1.)), it+1)
                 vutils.save_image(samples, os.path.join(
                         'output', args.experiment_name, 'sample_training',
-                        'Epoch_({:d})_({:d}of{:d}).jpg'.format(epoch, it%it_per_epoch+1, it_per_epoch)
+                        'Epoch_({:d})_({:d}of{:d}).jpg'.format(epoch, it % it_per_epoch+1, it_per_epoch)
                     ), nrow=1, normalize=True, range=(-1., 1.))
         it += 1

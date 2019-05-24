@@ -61,6 +61,7 @@ class SwitchNorm1d(nn.Module):
         x = (x - mean) / (var + self.eps).sqrt()
         return x * self.weight + self.bias
 
+
 class SwitchNorm2d(nn.Module):
     def __init__(self, num_features, eps=1e-5, momentum=0.997, using_moving_average=True, using_bn=True,
                  last_gamma=False):
