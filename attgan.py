@@ -63,8 +63,7 @@ class Generator(nn.Module):
         return zs
 
     def decode(self, zs, a):
-        a_tile = a.view(a.size(0), -1, 1, 1).repeat(1,
-                                                    1, self.f_size, self.f_size)
+        a_tile = a.view(a.size(0), -1, 1, 1).repeat(1, 1, self.f_size, self.f_size)
         z = torch.cat([zs[-1], a_tile], dim=1)
         for i, layer in enumerate(self.dec_layers):
             z = layer(z)
