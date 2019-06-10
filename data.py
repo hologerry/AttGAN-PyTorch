@@ -36,6 +36,45 @@ class Custom(data.Dataset):
         return len(self.images)
 
 
+class Explo(data.Dataset):
+    def __init__(self, data_path, attr_path, image_size, mode, selected_attrs):
+        super(Explo, self).__init__()
+        self.data_path = data_path
+        att_list = open(attr_path, 'r', encoding='utf-8').readlines()[0].split(' ')
+        atts = [att_list.index(att)+1 for att in selected_attrs]
+        images = np.loadtxt(attr_path, skiprows=1, usecols=[0], dtype=np.str)
+        labels = np.loadtxt(attr_path, skiprows=1, usecols=atts, dtype=np.int)
+        train_ratio = 0.8
+        val_ratio = 0.1
+        total_size = len(images)
+
+        if mode == 'train':
+            self.images = images[:int(total_size*train_ratio)]
+            self.labels = labels[:int(total_size*train_ratio)]
+        elif mode == 'valid':
+            self.images = images[int(total_size*train_ratio):int(total_size*(train_ratio+val_ratio))]
+            self.labels = labels[int(total_size*train_ratio):int(total_size*(train_ratio+val_ratio))]
+        elif mode == 'test':
+            self.images = images[int(total_size*(train_ratio+val_ratio)):]
+            self.labels = labels[int(total_size*(train_ratio+val_ratio)):]
+
+        self.tf = transforms.Compose([
+            transforms.Resize(image_size),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ])
+
+        self.length = len(self.images)
+
+    def __getitem__(self, index):
+        img = self.tf(Image.open(os.path.join(self.data_path, self.images[index])))
+        att = torch.tensor((self.labels[index] + 1) // 2)
+        return img, att
+
+    def __len__(self):
+        return self.length
+
+
 class CelebA(data.Dataset):
     def __init__(self, data_path, attr_path, image_size, mode, selected_attrs):
         super(CelebA, self).__init__()
