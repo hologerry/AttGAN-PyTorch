@@ -68,7 +68,7 @@ class Explo(data.Dataset):
 
     def __getitem__(self, index):
         img = self.tf(Image.open(os.path.join(self.data_path, self.images[index])))
-        att = torch.tensor((self.labels[index] + 1) // 2)
+        att = torch.tensor((self.labels[index] + 1) // 2)   # convert label 1 -> 1, -1 -> 0
         return img, att
 
     def __len__(self):

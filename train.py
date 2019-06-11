@@ -16,7 +16,7 @@ import torch.utils.data as data
 import torch
 import torchvision.utils as vutils
 from attgan import AttGAN
-from data import check_attribute_conflict
+# from data import check_attribute_conflict
 from helpers import Progressbar, add_scalar_dict
 from tensorboardX import SummaryWriter
 
@@ -69,8 +69,8 @@ def parse(args=None):
     parser.add_argument('--lambda_gp', dest='lambda_gp', type=float, default=10.0)
 
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
-    parser.add_argument('--epochs', dest='epochs', type=int, default=200, help='# of epochs')
-    parser.add_argument('--batch_size', dest='batch_size', type=int, default=64)
+    parser.add_argument('--epochs', dest='epochs', type=int, default=100, help='# of epochs')
+    parser.add_argument('--batch_size', dest='batch_size', type=int, default=4)
     parser.add_argument('--num_workers', dest='num_workers', type=int, default=0)
     parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)
@@ -83,8 +83,10 @@ def parse(args=None):
     parser.add_argument('--test_int', dest='test_int', type=float, default=1.0)
     parser.add_argument('--n_samples', dest='n_samples', type=int, default=16, help='# of sample images')
 
-    parser.add_argument('--save_interval', dest='save_interval', type=int, default=1000)
-    parser.add_argument('--sample_interval', dest='sample_interval', type=int, default=1000)
+    parser.add_argument('--save_interval', dest='save_interval', type=int, default=1000,
+                        help='interval of save G')
+    parser.add_argument('--sample_interval', dest='sample_interval', type=int, default=200,
+                        help='interval of evaluation')
     parser.add_argument('--gpu', dest='gpu', action='store_true')
     parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
     parser.add_argument('--experiment_name', dest='experiment_name',
@@ -143,7 +145,7 @@ sample_att_b_list = [fixed_att_a]
 for i in range(args.n_attrs):
     tmp = fixed_att_a.clone()
     tmp[:, i] = 1 - tmp[:, i]
-    tmp = check_attribute_conflict(tmp, args.attrs[i], args.attrs)
+    # tmp = check_attribute_conflict(tmp, args.attrs[i], args.attrs)
     sample_att_b_list.append(tmp)
 
 it = 0
@@ -151,7 +153,7 @@ it_per_epoch = len(train_dataset) // args.batch_size
 for epoch in range(args.epochs):
     # train with base lr in the first 100 epochs
     # and half the lr in the last 100 epochs
-    lr = args.lr_base / (10 ** (epoch // 100))
+    lr = args.lr_base / (10 ** (epoch // 50))
     attgan.set_lr(lr)
     writer.add_scalar('LR/learning_rate', lr, it+1)
     for img_a, att_a in progressbar(train_dataloader):
@@ -189,12 +191,12 @@ for epoch in range(args.epochs):
             # To save storage space, I only checkpoint the weights of G.
             # If you'd like to keep weights of G, D, optim_G, optim_D,
             # please use save() instead of saveG().
-            attgan.saveG(os.path.join(
-                'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
-            ))
-            # attgan.save(os.path.join(
+            # attgan.saveG(os.path.join(
             #     'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
             # ))
+            attgan.save(os.path.join(
+                'output', args.experiment_name, 'checkpoint', 'weights.{:d}.pth'.format(epoch)
+            ))
         if (it+1) % args.sample_interval == 0:
             attgan.eval()
             with torch.no_grad():
@@ -208,6 +210,6 @@ for epoch in range(args.epochs):
                 writer.add_image('sample', vutils.make_grid(samples, nrow=1, normalize=True, range=(-1., 1.)), it+1)
                 vutils.save_image(samples, os.path.join(
                         'output', args.experiment_name, 'sample_training',
-                        'Epoch_({:d})_({:d}of{:d}).jpg'.format(epoch, it % it_per_epoch+1, it_per_epoch)
+                        'Epoch_({:d})_({:d}of{:d}).png'.format(epoch, it % it_per_epoch+1, it_per_epoch)
                     ), nrow=1, normalize=True, range=(-1., 1.))
         it += 1
