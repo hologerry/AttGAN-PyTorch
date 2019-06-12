@@ -26,10 +26,15 @@ from tensorboardX import SummaryWriter
 #     'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
 # ]
 
-# only used first 10 attributes
+# only used first 13 attributes
+# attrs_default = [
+#     'angular', 'artistic', 'attention-grabbing', 'attractive', 'bad',
+#     'boring', 'calm', 'capitals', 'charming', 'clumsy', 'complex', 'cursive', 'delicate'
+# ]
+# top 13 attributes
 attrs_default = [
-    'angular', 'artistic', 'attention-grabbing', 'attractive', 'bad',
-    'boring', 'calm', 'capitals', 'charming', 'clumsy', 'complex', 'cursive', 'delicate'
+    'thin', 'strong', 'wide', 'soft', 'disorderly', 'artistic', 'complex', 'playful', 'calm',
+    'dramatic', 'sloppy', 'clumsy', 'bad'
 ]
 
 
@@ -70,7 +75,7 @@ def parse(args=None):
 
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
     parser.add_argument('--epochs', dest='epochs', type=int, default=100, help='# of epochs')
-    parser.add_argument('--batch_size', dest='batch_size', type=int, default=4)
+    parser.add_argument('--batch_size', dest='batch_size', type=int, default=128)
     parser.add_argument('--num_workers', dest='num_workers', type=int, default=0)
     parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)

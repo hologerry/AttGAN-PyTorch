@@ -40,7 +40,7 @@ class Explo(data.Dataset):
     def __init__(self, data_path, attr_path, image_size, mode, selected_attrs):
         super(Explo, self).__init__()
         self.data_path = data_path
-        att_list = open(attr_path, 'r', encoding='utf-8').readlines()[0].split(' ')
+        att_list = open(attr_path, 'r', encoding='utf-8').readlines()[0].strip().split(' ')
         atts = [att_list.index(att)+1 for att in selected_attrs]
         images = np.loadtxt(attr_path, skiprows=1, usecols=[0], dtype=np.str)
         labels = np.loadtxt(attr_path, skiprows=1, usecols=atts, dtype=np.int)
