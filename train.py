@@ -11,15 +11,14 @@ import json
 import os
 from os.path import join
 
-import torch.utils.data as data
-
 import torch
+import torch.utils.data as data
 import torchvision.utils as vutils
-from attgan import AttGAN
-from data import check_attribute_conflict
-from helpers import Progressbar, add_scalar_dict
 from tensorboardX import SummaryWriter
 
+from attgan import AttGAN
+from data import Explo, check_attribute_conflict
+from helpers import Progressbar, add_scalar_dict
 
 # attrs_default = [
 #     'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows',
@@ -27,25 +26,25 @@ from tensorboardX import SummaryWriter
 # ]
 
 # only used first 10 attributes
-attrs_default = [
-    'angular', 'artistic', 'attention-grabbing', 'attractive', 'bad',
-    'boring', 'calm', 'capitals', 'charming', 'clumsy', 'complex', 'cursive', 'delicate'
-]
+# attrs_default = [
+#     'angular', 'artistic', 'attention-grabbing', 'attractive', 'bad',
+#     'boring', 'calm', 'capitals', 'charming', 'clumsy', 'complex', 'cursive', 'delicate'
+# ]
 
 
 def parse(args=None):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--attrs', dest='attrs', default=attrs_default, nargs='+', help='attributes to learn')
-    parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ', 'Explo'], default='Explo')
-    parser.add_argument('--data_path', dest='data_path', type=str, default='data/explo_tag/gw_image')
-    parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/explo_tag/gw_binary_atts.txt')
+    parser.add_argument('--attrs', dest='attrs', default=None, nargs='+', help='attributes to learn')
+    parser.add_argument('--data', dest='data', type=str,  default='Explo', choices=['CelebA', 'CelebA-HQ', 'Explo'])
+    parser.add_argument('--data_path', dest='data_path', type=str, default='data/explor_all/gw_image')
+    parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/explor_all/gw_binary_atts.txt')
     # parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ', 'Explo'], default='CelebA')
     # parser.add_argument('--data_path', dest='data_path', type=str, default='data/img_align_celeba')
     # parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_celeba.txt')
-    parser.add_argument('--image_list_path', dest='image_list_path', type=str, default='data/image_list.txt')
+    # parser.add_argument('--image_list_path', dest='image_list_path', type=str, default='data/image_list.txt')
 
-    parser.add_argument('--img_size', dest='img_size', type=int, default=128)
+    parser.add_argument('--img_size', dest='img_size', type=int, default=64)
     parser.add_argument('--shortcut_layers', dest='shortcut_layers', type=int, default=1)
     parser.add_argument('--inject_layers', dest='inject_layers', type=int, default=0)
     parser.add_argument('--enc_dim', dest='enc_dim', type=int, default=64)
@@ -71,7 +70,7 @@ def parse(args=None):
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
     parser.add_argument('--epochs', dest='epochs', type=int, default=200, help='# of epochs')
     parser.add_argument('--batch_size', dest='batch_size', type=int, default=64)
-    parser.add_argument('--num_workers', dest='num_workers', type=int, default=0)
+    parser.add_argument('--num_workers', dest='num_workers', type=int, default=32)
     parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)
     parser.add_argument('--beta2', dest='beta2', type=float, default=0.999)
@@ -85,10 +84,10 @@ def parse(args=None):
 
     parser.add_argument('--save_interval', dest='save_interval', type=int, default=1000)
     parser.add_argument('--sample_interval', dest='sample_interval', type=int, default=1000)
-    parser.add_argument('--gpu', dest='gpu', action='store_true')
+    parser.add_argument('--gpu', dest='gpu', type=bool, defalut=True)
     parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
     parser.add_argument('--experiment_name', dest='experiment_name',
-                        default=datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y"))
+                        default="attgan_att2font")
 
     return parser.parse_args(args)
 
@@ -106,20 +105,8 @@ os.makedirs(join('output', args.experiment_name, 'sample_training'), exist_ok=Tr
 with open(join('output', args.experiment_name, 'setting.txt'), 'w') as f:
     f.write(json.dumps(vars(args), indent=4, separators=(',', ':')))
 
-if args.data == 'CelebA':
-    from data import CelebA
-    train_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
-    valid_dataset = CelebA(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
-elif args.data == 'CelebA-HQ':
-    from data import CelebA_HQ
-    train_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'train', args.attrs)
-    valid_dataset = CelebA_HQ(args.data_path, args.attr_path, args.image_list_path, args.img_size, 'valid', args.attrs)
-elif args.data == 'Explo':
-    from data import Explo
-    train_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
-    valid_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
-else:
-    raise('Not defined data type')
+train_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
+valid_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
 
 train_dataloader = data.DataLoader(
     train_dataset, batch_size=args.batch_size, num_workers=args.num_workers,
