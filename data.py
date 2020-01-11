@@ -35,7 +35,7 @@ from PIL import Image
 #         return len(self.images)
 
 def make_dataset(root, mode):
-    assert mode in ['train', 'val', 'test']
+    assert mode in ['train', 'valid', 'test']
     lines = [line.rstrip() for line in open(os.path.join(root, 'attributes.txt'), 'r')]
     all_attr_names = lines[0].strip().split()
     attr2idx = {}

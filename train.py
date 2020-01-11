@@ -20,25 +20,14 @@ from attgan import AttGAN
 from data import Explo
 from helpers import Progressbar, add_scalar_dict
 
-# attrs_default = [
-#     'Bald', 'Bangs', 'Black_Hair', 'Blond_Hair', 'Brown_Hair', 'Bushy_Eyebrows',
-#     'Eyeglasses', 'Male', 'Mouth_Slightly_Open', 'Mustache', 'No_Beard', 'Pale_Skin', 'Young'
-# ]
-
-# only used first 13 attributes
-# attrs_default = [
-#     'angular', 'artistic', 'attention-grabbing', 'attractive', 'bad',
-#     'boring', 'calm', 'capitals', 'charming', 'clumsy', 'complex', 'cursive', 'delicate'
-# ]
-
 
 def parse(args=None):
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--attrs', dest='attrs', default=None, nargs='+', help='attributes to learn')
     parser.add_argument('--data', dest='data', type=str,  default='Explo', choices=['CelebA', 'CelebA-HQ', 'Explo'])
-    parser.add_argument('--data_path', dest='data_path', type=str, default='data/explor_all/gw_image')
-    parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/explor_all/gw_binary_atts.txt')
+    parser.add_argument('--data_path', dest='data_path', type=str, default='data/explor_all/')
+    parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/explor_all/attributes.txt')
     # parser.add_argument('--data', dest='data', type=str, choices=['CelebA', 'CelebA-HQ', 'Explo'], default='CelebA')
     # parser.add_argument('--data_path', dest='data_path', type=str, default='data/img_align_celeba')
     # parser.add_argument('--attr_path', dest='attr_path', type=str, default='data/list_attr_celeba.txt')
@@ -70,7 +59,7 @@ def parse(args=None):
     parser.add_argument('--mode', dest='mode', default='wgan', choices=['wgan', 'lsgan', 'dcgan'])
 
     parser.add_argument('--epochs', dest='epochs', type=int, default=200, help='# of epochs')
-    parser.add_argument('--batch_size', dest='batch_size', type=int, default=64)
+    parser.add_argument('--batch_size', dest='batch_size', type=int, default=32)
     parser.add_argument('--num_workers', dest='num_workers', type=int, default=32)
     parser.add_argument('--lr', dest='lr', type=float, default=0.0002, help='learning rate')
     parser.add_argument('--beta1', dest='beta1', type=float, default=0.5)
@@ -85,7 +74,7 @@ def parse(args=None):
 
     parser.add_argument('--save_interval', dest='save_interval', type=int, default=1000)
     parser.add_argument('--sample_interval', dest='sample_interval', type=int, default=1000)
-    parser.add_argument('--gpu', dest='gpu', type=bool, defalut=True)
+    parser.add_argument('--gpu', dest='gpu', type=bool, default=True)
 
     parser.add_argument('--multi_gpu', dest='multi_gpu', action='store_true')
     parser.add_argument('--experiment_name', dest='experiment_name',
@@ -98,7 +87,7 @@ args = parse()
 print(args)
 
 args.lr_base = args.lr
-args.n_attrs = len(args.attrs)
+args.n_attrs = 37
 args.betas = (args.beta1, args.beta2)
 
 os.makedirs(join('output', args.experiment_name), exist_ok=True)
@@ -107,8 +96,8 @@ os.makedirs(join('output', args.experiment_name, 'sample_training'), exist_ok=Tr
 with open(join('output', args.experiment_name, 'setting.txt'), 'w') as f:
     f.write(json.dumps(vars(args), indent=4, separators=(',', ':')))
 
-train_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'train', args.attrs)
-valid_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'valid', args.attrs)
+train_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'train')
+valid_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'valid')
 
 train_dataloader = data.DataLoader(
     train_dataset, batch_size=args.batch_size, num_workers=args.num_workers,

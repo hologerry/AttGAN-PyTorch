@@ -47,13 +47,13 @@ args.load_epoch = args_.load_epoch
 # args.custom_img = args_.custom_img
 # args.custom_data = args_.custom_data
 # args.custom_attr = args_.custom_attr
-args.n_attrs = len(args.attrs)
+args.n_attrs = 37
 args.betas = (args.beta1, args.beta2)
 
 print(args)
 
 output_path = join('output', args.experiment_name, 'sample_testing')
-test_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'test', args.attrs)
+test_dataset = Explo(args.data_path, args.attr_path, args.img_size, 'test')
 os.makedirs(output_path, exist_ok=True)
 test_dataloader = data.DataLoader(
     test_dataset, batch_size=1, num_workers=args.num_workers,
